@@ -1,0 +1,71 @@
+import random
+
+#http://www.codeskulptor.org/#user39_25Rok3LDtO_9.py
+
+#library necessary for random number generation
+import random
+
+def name_to_number(name):
+    # convert name to number
+    
+    if name=="rock":
+        return 0
+    elif name=="spock":
+        return 1
+    elif name=="paper":
+        return 2
+    elif name=="lizard":
+        return 3
+    elif name=="scissors":
+        return 4
+    else:	
+        return 5
+
+def number_to_name(number):
+    # convert number to name
+    if number==0:
+        return "rock"
+    elif number==1:
+        return "spock"
+    elif number==2:
+        return "paper"
+    elif number==3:
+        return "lizard"
+    elif number==4:
+        return "scissors"
+    else:
+        return "improper choice"
+    
+def play(name_human):
+    # Generate choice for computer
+    random_number=random.randrange(0,5)
+    name_computer=number_to_name(random_number)
+    
+    # Text
+    print "Player chooses", name_human
+    print "Computer chooses", name_computer
+          
+    # compute difference of player_number and comp_number modulo five
+    outcome=name_to_number(name_human)-random_number;
+    # Determine outcome
+    if(outcome < 0):
+        outcome=outcome+5;
+  
+    if(outcome==3 or outcome==4):
+        print "Computer wins!\n"
+    elif (outcome==1 or outcome==2):
+        print "Player wins!\n"
+    else:
+        print "Player and computer tie!\n"    
+        
+def rpsls(): 
+        # Give input
+        name_human=raw_input("Give choice")
+        if name_to_number(name_human)==5:
+            # Quit program for wrong input 
+            print "Wrong input" 
+            quit()
+        play(name_human)
+    
+rpsls()
+

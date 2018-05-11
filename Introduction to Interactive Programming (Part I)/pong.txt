@@ -1,0 +1,155 @@
+http://www.codeskulptor.org/#user43_b4B4BDzuzg_7.py
+
+# Implementation of classic arcade game Pong
+
+import simplegui
+import random
+
+#Define global constants
+# initialize globals - pos and vel encode vertical info for paddles
+WIDTH = 600 #Field width
+HEIGHT = 400       # Field Height
+BALL_RADIUS = 20	#Ball Radius
+PAD_WIDTH = 8	
+PAD_HEIGHT = 80
+
+#Define global variables
+# Depending on which player won the last game, the ball will either go left or right
+Left = False	#Indicates whether ball is going left
+Right = True	#Indicates whether ball is going right
+ball_x_vel_lower=1 #We define lower and upper speeds, as the ball speed is a random draw
+ball_x_vel_upper=3
+ball_y_vel_lower=1
+ball_y_vel_upper=3
+
+paddle1_y_vel=0	#Paddle will not move initially
+paddle2_y_vel=0
+
+score1=0	#score player 1
+score2=0	#score player 2
+new_game=False
+
+# initialize ball_pos and ball_vel for new bal in middle of table
+# if direction is RIGHT, the ball's velocity is upper right, else upper left
+def spawn_ball(direction):
+    global ball_pos, ball_vel # these are vectors stored as lists
+
+    ball_pos=[WIDTH/2,HEIGHT/2]
+    
+    if(Right==True):
+        ball_vel=[random.randrange(ball_x_vel_lower,ball_x_vel_upper),-random.randrange(ball_y_vel_lower,ball_y_vel_upper)]
+    else:
+        ball_vel=[-random.randrange(ball_x_vel_lower,ball_x_vel_upper),-random.randrange(ball_y_vel_lower,ball_y_vel_lower)]
+
+# define event handlers
+def start_new_game():
+    global paddle1_y_pos, paddle2_y_pos  # these are newly defined variables
+    
+    paddle1_y_pos=HEIGHT/2 
+    paddle2_y_pos=HEIGHT/2 
+    
+    global score1, score2, new_game  #These global variables were already defined
+    
+    if(new_game==True):
+        score1, score2=0,0
+        new_game=False
+    
+    spawn_ball(Right)
+    
+def draw(canvas):
+    global score1, score2, paddle1_y_pos, paddle2_y_pos, ball_pos, ball_vel, Right
+     
+    # draw mid line and gutters
+    canvas.draw_line([WIDTH / 2, 0],[WIDTH / 2, HEIGHT], 1, "White")
+    canvas.draw_line([PAD_WIDTH, 0],[PAD_WIDTH, HEIGHT], 1, "White")
+    canvas.draw_line([WIDTH - PAD_WIDTH, 0],[WIDTH - PAD_WIDTH, HEIGHT], 1, "White")
+       
+    paddle1_y_pos += paddle1_y_vel
+    paddle2_y_pos += paddle2_y_vel
+    
+    if(paddle2_y_pos+PAD_HEIGHT>HEIGHT):
+        paddle2_y_pos=HEIGHT-PAD_HEIGHT
+    elif(paddle2_y_pos<0):
+        paddle2_y_pos=0
+    
+    if(paddle1_y_pos+PAD_HEIGHT/2>HEIGHT):
+        paddle1_y_pos=HEIGHT-PAD_HEIGHT/2
+    elif(paddle1_y_pos<0):
+        paddle1_y_pos=0
+    
+    canvas.draw_line((PAD_WIDTH/2, paddle1_y_pos), (PAD_WIDTH/2, paddle1_y_pos+PAD_HEIGHT), PAD_WIDTH, 'White')
+    canvas.draw_line((WIDTH-PAD_WIDTH, paddle2_y_pos), (WIDTH-PAD_WIDTH, paddle2_y_pos+PAD_HEIGHT), PAD_WIDTH, 'White')
+    
+    # update ball
+    
+    ball_pos[0] += ball_vel[0]
+    ball_pos[1] += ball_vel[1]
+    # draw ball
+    if((ball_pos[1]>paddle2_y_pos) and (ball_pos[1]<paddle2_y_pos+PAD_HEIGHT)):
+            print(True)
+    print("pad position is " + str(paddle2_y_pos))
+    print("ball position is " + str(ball_pos))
+
+    if(ball_pos[1]-BALL_RADIUS<0):
+        ball_vel[1]=-ball_vel[1]
+    elif(ball_pos[1]+BALL_RADIUS>HEIGHT):
+        ball_vel[1]=-ball_vel[1]
+    elif(ball_pos[0]-BALL_RADIUS<0):
+        RIGHT=True
+        score2 +=1
+        start_new_game()
+    elif(ball_pos[0]+BALL_RADIUS>WIDTH):
+        RIGHT=False
+        score1 +=1
+        start_new_game()
+              
+    canvas.draw_circle(ball_pos, BALL_RADIUS,0.001,'Red','Red')
+    
+    # determine whether paddle and ball collide    
+    
+    if(ball_pos[0]+BALL_RADIUS+2==WIDTH):
+        if((ball_pos[1]>paddle2_y_pos-5) and (ball_pos[1]<paddle2_y_pos+PAD_HEIGHT+5)):
+            ball_vel[0]=-ball_vel[0]
+            
+    if(ball_pos[0]==BALL_RADIUS+2):
+        if((ball_pos[1]>paddle1_y_pos-5) and (ball_pos[1]<paddle1_y_pos+PAD_HEIGHT+5)):
+            ball_vel[0]=-ball_vel[0]
+    # draw scores
+    canvas.draw_text(str(score1),(150,60),50,'Green')
+    canvas.draw_text(str(score2),(450,60),50,'Green')
+    
+def keydown(key):
+    global paddle1_y_vel, paddle2_y_vel
+    
+    if key == simplegui.KEY_MAP["s"]:
+        paddle1_y_vel = 3
+    if key == simplegui.KEY_MAP["w"]:
+         paddle1_y_vel = -3
+    if key == simplegui.KEY_MAP["down"]:
+        paddle2_y_vel = 3
+    if key == simplegui.KEY_MAP["up"]:
+        paddle2_y_vel = -3
+    
+def keyup(key):
+    global paddle1_y_vel, paddle2_y_vel
+    
+    if(key == simplegui.KEY_MAP["s"] or key == simplegui.KEY_MAP["w"]):
+        paddle1_y_vel = 0  
+    if(key == simplegui.KEY_MAP["down"] or key == simplegui.KEY_MAP["up"]):
+        paddle2_y_vel = 0
+
+def restarter():
+    global new_game
+    new_game=True
+    start_new_game()
+
+# create frame
+frame = simplegui.create_frame("Pong", WIDTH, HEIGHT)
+frame.set_draw_handler(draw)
+frame.set_keydown_handler(keydown)
+frame.set_keyup_handler(keyup)
+frame.add_button("Restart",restarter,100)
+
+# start frame
+start_new_game()
+frame.start()
